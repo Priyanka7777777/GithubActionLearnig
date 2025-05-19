@@ -1,15 +1,16 @@
-# TODO: Remove this unused import
-import math  # This is unused
+# TODO: Remove unused import
+import math  # unused
 
-# This function is never called
+# This function is never used
 def unused_function():
-    print("This function is not used")
+    print("Hello, I'm unused!")
 
-# Main function
+# Commented-out code
+# unused_function()
+
 def main():
     x = 5
     y = 10
-    result = x + y
-    print("Result:", result)
+    print(x + y)
 
-# main()  # This is commented-out code
+main()
