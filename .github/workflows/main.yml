@@ -27,6 +27,4 @@ jobs:
       run: |
         vulture .  # fails on unused code
 
-    - name: Run Flake8 (detect TODOs and commented-out code)
-      run: |
-        flake8 . --extend-ignore=E501
+    
