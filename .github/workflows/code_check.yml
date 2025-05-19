@@ -1,0 +1,84 @@
+name: Multi-Language Code Check (macOS Self-Hosted)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-scan:
+    runs-on: [self-hosted, macOS]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Set up Dart/Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+
+      - name: Install Python tools
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install vulture flake8
+
+      - name: Run Python checks
+        run: |
+          echo "== Vulture (Unused Code) =="
+          vulture . > python_unused.txt || true
+          cat python_unused.txt
+
+          echo "== Flake8 (Linting & Comments) =="
+          flake8 . --exit-zero > python_lint.txt
+          cat python_lint.txt
+
+      - name: Install Go tools
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install golang.org/x/lint/golint@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Run Go checks
+        run: |
+          echo "== Staticcheck (Unused Code) =="
+          staticcheck ./... > go_staticcheck.txt || true
+          cat go_staticcheck.txt
+
+          echo "== Golint =="
+          golint ./... > go_lint.txt || true
+          cat go_lint.txt
+
+      - name: Run Dart/Flutter analysis
+        run: |
+          flutter pub get
+          echo "== Dart Analyzer =="
+          dart analyze > dart_analysis.txt || true
+          cat dart_analysis.txt
+
+          echo "== Dart Format Check =="
+          dart format . --set-exit-if-changed > dart_format.txt || true
+          cat dart_format.txt
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-scan-reports
+          path: |
+            python_unused.txt
+            python_lint.txt
+            go_staticcheck.txt
+            go_lint.txt
+            dart_analysis.txt
+            dart_format.txt
