@@ -1,0 +1,29 @@
+name: Code Cleanup & Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install tools
+        run: pip install vulture flake8 flake8-todo flake8-comments
+
+      - name: Run Vulture (detect unused code)
+        run: vulture .
+
+      - name: Run Flake8
+        run: flake8 .
