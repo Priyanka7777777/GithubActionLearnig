@@ -1,4 +1,3 @@
-# .github/workflows/black.yml
 name: Auto-format Python code with Black
 
 on:
@@ -7,13 +6,8 @@ on:
   pull_request:
     branches: [main]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   format:
-    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'Corrected by workflow')
     runs-on: ubuntu-latest
 
     steps:
@@ -27,22 +21,23 @@ jobs:
 
       - run: pip install black
 
-      - name: Run Black formatter
+      - name: Run Black formatter if not bot commit
         run: |
+          echo "Commit author: $GITHUB_ACTOR"
+          if [[ "$GITHUB_ACTOR" == "github-actions[bot]" ]]; then
+            echo "Commit by bot — skipping formatting to avoid infinite loops."
+            exit 0
+          fi
+
           black .
+          
           if [[ -n "$(git status --porcelain)" ]]; then
-            echo "🛠 Code formatted, committing..."
+            echo "Formatting issues found! Committing fixes..."
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
             git add .
             git commit -m "Corrected by workflow: black formatter"
             git push
-            echo "formatted=true" >> $GITHUB_ENV
           else
-            echo "formatted=false" >> $GITHUB_ENV
-
-      - name: Stop if formatted
-        if: env.formatted == 'true'
-        run: |
-          echo "Code formatted. Skipping further jobs."
-          exit 0
+            echo "No formatting changes needed."
+          fi
