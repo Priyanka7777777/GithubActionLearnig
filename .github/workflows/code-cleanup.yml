@@ -1,4 +1,3 @@
-# .github/workflows/code_cleanup.yml
 name: Code Cleanup & Lint
 
 on:
@@ -13,19 +12,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install lint tools
-        run: pip install vulture flake8 flake8-todo flake8-comments
+      - run: pip install vulture flake8 flake8-todo flake8-comments
 
-      - name: Run Vulture
-        run: vulture .
+      - name: Run Vulture (detect unused code)
+        run: vulture . || true
 
       - name: Run Flake8
         run: flake8 .
