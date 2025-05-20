@@ -1,4 +1,1 @@
-
-
-
-print( "I am Priyanka")
+print("I am Priyanka")
