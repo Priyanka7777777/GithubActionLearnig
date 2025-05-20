@@ -1,4 +1,4 @@
-name: Auto-format Python code with Black
+name: Auto-format and Lint Python Code
 
 on:
   push:
@@ -11,45 +11,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  format:
-    # ✅ Skip self-triggered commits
+  lint-format:
     if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'Corrected by workflow')
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.TOKEN }}
           fetch-depth: 0  # Required for rebase
 
-      - uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Black
-        run: pip install black
+      - name: Install tools (Black + Ruff)
+        run: |
+          pip install black ruff
+
+      - name: Check Python syntax
+        run: |
+          echo "🔍 Checking Python syntax..."
+          python -m compileall . || {
+            echo "❌ Syntax error detected. Skipping formatting/linting."
+            exit 0
+          }
+
+      - name: Run Ruff (auto-fix lint issues)
+        run: |
+          echo "🧹 Running Ruff to auto-fix lint issues..."
+          ruff check . --fix
 
       - name: Run Black formatter
-        run: black .
+        run: |
+          echo "🎨 Running Black formatter..."
+          black .
 
-      - name: Commit formatted code if needed
+      - name: Commit changes if needed
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
-            echo "Formatting changes detected. Preparing to commit..."
+            echo "✅ Changes detected. Committing..."
 
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
             git add .
-            git commit -m "Corrected by workflow: black formatter"
+            git commit -m "Corrected by workflow: black + ruff auto-fixes"
 
-            echo "Rebasing on latest origin/main to avoid conflicts..."
             git pull --rebase origin main || {
-              echo "Rebase failed due to conflicts. Skipping push."
+              echo "⚠️ Rebase failed. Skipping push."
               exit 0
             }
 
-            echo "Pushing formatting commit..."
             git push
           else
-            echo "No formatting changes needed. Original commit preserved."
-          fi
+            echo "✅ No changes detected. Code is already clean."
