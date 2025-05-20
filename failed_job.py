@@ -1,5 +1,4 @@
-def greet(name):
-    print(f"Hello, {name}!")
+def say_hello(name):print("Hello, "+name+"!")
 
-
-greet("Priyanka")
+def   add_numbers (a,b):
+  return a+b
