@@ -1,8 +1,8 @@
-def name(){
+def name():
   print("hello, i am priyanka")
-}
-def main(){
+
+def main():
   name()
-}
+
 
 
