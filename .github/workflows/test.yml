@@ -1,18 +1,14 @@
 name: Run Unit Tests
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_run:
+    workflows: ["Code Cleanup & Lint"]
+    types:
+      - completed
 
 jobs:
   test:
-    if: github.actor != 'github-actions[bot]'
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
